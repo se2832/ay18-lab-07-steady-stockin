@@ -159,40 +159,6 @@ public class StockQuoteAnalyzerTests {
 		verify(mockedStockTickerAudio, times(0)).playSadMusic();
 	}
 
-	@Test
-    public void testShouldPlayHappyAudioWhenPercentChangeSinceOpenGreaterThan1() throws Exception
-    {
-        // Arrange
-        when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(new StockQuote("F",10.0,100.00,0.50));
-        analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
-        analyzer.refresh();
-
-        //Act
-        analyzer.playAppropriateAudio();
-
-        //Assert
-        verify(mockedStockTickerAudio, times(1)).playHappyMusic();
-        verify(mockedStockTickerAudio, times(0)).playSadMusic();
-        verify(mockedStockTickerAudio, times(0)).playErrorMusic();
-    }
-
-    @Test
-    public void testShouldPlayHappyAudioWhenChangeSinceLastCheckGreaterThan1() throws Exception
-    {
-        // Arrange
-        when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(new StockQuote("F",1000.0,1000.00,1.50));
-        analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
-        analyzer.refresh();
-
-        //Act
-        analyzer.playAppropriateAudio();
-
-        //Assert
-        verify(mockedStockTickerAudio, times(1)).playHappyMusic();
-        verify(mockedStockTickerAudio, times(0)).playSadMusic();
-        verify(mockedStockTickerAudio, times(0)).playErrorMusic();
-    }
-
     @Test
 	public void testShouldGetChangeSinceLastCheckOneUpdate() throws Exception
 	{
