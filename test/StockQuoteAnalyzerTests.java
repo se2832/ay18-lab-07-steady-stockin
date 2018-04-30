@@ -1,21 +1,14 @@
 import exceptions.InvalidAnalysisState;
 import exceptions.InvalidStockSymbolException;
 import exceptions.StockTickerConnectionError;
+import org.mockito.Mock;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.testng.annotations.BeforeMethod;
-
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import org.testng.Assert;
-
-import org.mockito.Mock;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.DataProvider;
+import static org.mockito.Mockito.*;
 
 public class StockQuoteAnalyzerTests {
 	@Mock
@@ -70,6 +63,24 @@ public class StockQuoteAnalyzerTests {
 
 		//Assert
 	}
+
+	@Test
+    public void testRefreshShouldUpdateCurrentAndPreviousQuote() throws Exception {
+        // Arrange
+        StockQuote shouldBePrevious = new StockQuote("F",0.0,0.0,0.0);
+        StockQuote shouldBeCurrent = new StockQuote("F",0.0,0.0,0.0);
+        analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
+
+        // Act
+        when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(shouldBePrevious);
+        analyzer.refresh();
+        when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(shouldBeCurrent);
+        analyzer.refresh();
+
+        // Assert
+        Assert.assertSame(analyzer.getCurrentQuote(),shouldBeCurrent);
+        Assert.assertEquals(analyzer.getChangeSinceLastCheck(),0.0);
+    }
 	
 	@Test(expectedExceptions = InvalidAnalysisState.class)
 	public void testShouldThrowExceptionWhenGetPreviousOpenInvalidAnalysisState() throws InvalidAnalysisState, NullPointerException, InvalidStockSymbolException, StockTickerConnectionError
@@ -147,6 +158,40 @@ public class StockQuoteAnalyzerTests {
 		verify(mockedStockTickerAudio, times(0)).playHappyMusic();
 		verify(mockedStockTickerAudio, times(0)).playSadMusic();
 	}
+
+	@Test
+    public void testShouldPlayHappyAudioWhenPercentChangeSinceOpenGreaterThan1() throws Exception
+    {
+        // Arrange
+        when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(new StockQuote("F",10.0,100.00,0.50));
+        analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
+        analyzer.refresh();
+
+        //Act
+        analyzer.playAppropriateAudio();
+
+        //Assert
+        verify(mockedStockTickerAudio, times(1)).playHappyMusic();
+        verify(mockedStockTickerAudio, times(0)).playSadMusic();
+        verify(mockedStockTickerAudio, times(0)).playErrorMusic();
+    }
+
+    @Test
+    public void testShouldPlayHappyAudioWhenChangeSinceLastCheckGreaterThan1() throws Exception
+    {
+        // Arrange
+        when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(new StockQuote("F",1000.0,1000.00,1.50));
+        analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
+        analyzer.refresh();
+
+        //Act
+        analyzer.playAppropriateAudio();
+
+        //Assert
+        verify(mockedStockTickerAudio, times(1)).playHappyMusic();
+        verify(mockedStockTickerAudio, times(0)).playSadMusic();
+        verify(mockedStockTickerAudio, times(0)).playErrorMusic();
+    }
 
     @Test
 	public void testShouldGetChangeSinceLastCheckOneUpdate() throws Exception
