@@ -212,10 +212,33 @@ public class StockQuoteAnalyzerTests {
 		// Act
 		analyzer.refresh();
 		analyzer.refresh();
-		analyzer.playAppropriateAudio();
 
 		// Assert
         // Now verify the methods were called or not called appropriately
+		// default call count is 1
+		// check if add function is called three times
+		verify(mockedStockQuoteGenerator, times(2)).getCurrentQuote();
+
+		// Now check that the change calculation was correct.
+		Assert.assertEquals(analyzer.getPercentChangeSinceOpen(), percentChange, 0.01);
+	}
+
+	@Test(dataProvider = "normalOperationDataProvider")
+	public void testPlayAppropriateAudioShouldPlayCorrectSoundWhenCalled(StockQuote firstReturn, StockQuote secondReturn, int happyMusicCount, int sadMusicCount,
+																							 double percentChange) throws Exception {
+
+		// Arrange
+		when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(firstReturn, secondReturn);
+
+		analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
+
+		// Act
+		analyzer.refresh();
+		analyzer.refresh();
+		analyzer.playAppropriateAudio();
+
+		// Assert
+		// Now verify the methods were called or not called appropriately
 		// default call count is 1
 		// check if add function is called three times
 		verify(mockedStockQuoteGenerator, times(2)).getCurrentQuote();
@@ -224,9 +247,6 @@ public class StockQuoteAnalyzerTests {
 		verify(mockedStockTickerAudio, never()).playErrorMusic();
 		verify(mockedStockTickerAudio, times(happyMusicCount)).playHappyMusic();
 		verify(mockedStockTickerAudio, times(sadMusicCount)).playSadMusic();
-
-		// Now check that the change calculation was correct.
-		Assert.assertEquals(analyzer.getPercentChangeSinceOpen(), percentChange, 0.01);
 	}
 	
 	
