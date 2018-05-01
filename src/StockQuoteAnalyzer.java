@@ -135,8 +135,8 @@ public class StockQuoteAnalyzer {
 				if ((this.getPercentChangeSinceOpen() > 1) || (this.getChangeSinceLastCheck()>1.00)) {	//Fixed Issue #8 here. It was getChangeSinceLastCheck !=1.00 before.
 					audioPlayer.playHappyMusic();
 				}
-				if ((this.getPercentChangeSinceOpen() < -1) && (this.getChangeSinceLastCheck()<1.00)) {
-					audioPlayer.playSadMusic();
+				if ((this.getPercentChangeSinceOpen() < -1) || (this.getChangeSinceLastCheck()<-1.00)) { //Fixed Issue #9 here. It was getPercentChangeSinceOpen() < 0 before.
+					audioPlayer.playSadMusic();                                                         //Fixed Issue #11 on line above here. Was using 'or' and was 1.00 not -1.00.
 				}
 			} catch (InvalidAnalysisState e) {
 				// We have not retrieved a valid quote and are in a mode in
