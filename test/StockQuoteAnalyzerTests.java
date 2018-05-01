@@ -1,21 +1,14 @@
 import exceptions.InvalidAnalysisState;
 import exceptions.InvalidStockSymbolException;
 import exceptions.StockTickerConnectionError;
+import org.mockito.Mock;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.testng.annotations.BeforeMethod;
-
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import org.testng.Assert;
-
-import org.mockito.Mock;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.DataProvider;
+import static org.mockito.Mockito.*;
 
 public class StockQuoteAnalyzerTests {
 	@Mock
@@ -70,6 +63,24 @@ public class StockQuoteAnalyzerTests {
 
 		//Assert
 	}
+
+	@Test
+    public void testRefreshShouldUpdateCurrentAndPreviousQuote() throws Exception {
+        // Arrange
+        StockQuote shouldBePrevious = new StockQuote("F",0.0,0.0,0.0);
+        StockQuote shouldBeCurrent = new StockQuote("F",0.0,0.0,0.0);
+        analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
+
+        // Act
+        when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(shouldBePrevious);
+        analyzer.refresh();
+        when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(shouldBeCurrent);
+        analyzer.refresh();
+
+        // Assert
+        Assert.assertSame(analyzer.getCurrentQuote(),shouldBeCurrent);
+        Assert.assertEquals(analyzer.getChangeSinceLastCheck(),0.0);
+    }
 	
 	@Test(expectedExceptions = InvalidAnalysisState.class)
 	public void testShouldThrowExceptionWhenGetPreviousOpenInvalidAnalysisState() throws InvalidAnalysisState, NullPointerException, InvalidStockSymbolException, StockTickerConnectionError
@@ -201,10 +212,33 @@ public class StockQuoteAnalyzerTests {
 		// Act
 		analyzer.refresh();
 		analyzer.refresh();
-		analyzer.playAppropriateAudio();
 
 		// Assert
         // Now verify the methods were called or not called appropriately
+		// default call count is 1
+		// check if add function is called three times
+		verify(mockedStockQuoteGenerator, times(2)).getCurrentQuote();
+
+		// Now check that the change calculation was correct.
+		Assert.assertEquals(analyzer.getPercentChangeSinceOpen(), percentChange, 0.01);
+	}
+
+	@Test(dataProvider = "normalOperationDataProvider")
+	public void testPlayAppropriateAudioShouldPlayCorrectSoundWhenCalled(StockQuote firstReturn, StockQuote secondReturn, int happyMusicCount, int sadMusicCount,
+																							 double percentChange) throws Exception {
+
+		// Arrange
+		when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(firstReturn, secondReturn);
+
+		analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
+
+		// Act
+		analyzer.refresh();
+		analyzer.refresh();
+		analyzer.playAppropriateAudio();
+
+		// Assert
+		// Now verify the methods were called or not called appropriately
 		// default call count is 1
 		// check if add function is called three times
 		verify(mockedStockQuoteGenerator, times(2)).getCurrentQuote();
@@ -213,9 +247,6 @@ public class StockQuoteAnalyzerTests {
 		verify(mockedStockTickerAudio, never()).playErrorMusic();
 		verify(mockedStockTickerAudio, times(happyMusicCount)).playHappyMusic();
 		verify(mockedStockTickerAudio, times(sadMusicCount)).playSadMusic();
-
-		// Now check that the change calculation was correct.
-		Assert.assertEquals(analyzer.getPercentChangeSinceOpen(), percentChange, 0.01);
 	}
 	
 	
@@ -276,6 +307,20 @@ public class StockQuoteAnalyzerTests {
 
 		// Assert
         Assert.assertEquals(analyzer.getPreviousOpen(), firstReturn.getOpen(), 0.01);
+	}
+
+	@Test(dataProvider = "normalOperationDataProvider")
+	public void testGetSymbolShouldReturnSymbol(StockQuote firstReturn, StockQuote secondReturn, int happyMusicCount, int sadMusicCount,
+												double percentChange) throws Exception {
+		//Assert
+		when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(firstReturn);
+		analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
+
+		//Act
+		String symbol = firstReturn.getSymbol();
+
+		//Assert
+		Assert.assertEquals("F", symbol);
 	}
 
 	
