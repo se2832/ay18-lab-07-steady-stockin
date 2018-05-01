@@ -132,7 +132,7 @@ public class StockQuoteAnalyzer {
 	public void playAppropriateAudio() {
 		if (audioPlayer != null) {
 			try {
-				if ((this.getPercentChangeSinceOpen() > 1) || (this.getChangeSinceLastCheck()!=1.00)) {
+				if ((this.getPercentChangeSinceOpen() > 1) || (this.getChangeSinceLastCheck()>1.00)) {	//Fixed Issue #8 here. It was getChangeSinceLastCheck !=1.00 before.
 					audioPlayer.playHappyMusic();
 				}
 				if ((this.getPercentChangeSinceOpen() < 0) && (this.getChangeSinceLastCheck()<1.00)) {
