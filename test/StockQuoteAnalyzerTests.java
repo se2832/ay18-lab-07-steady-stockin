@@ -309,6 +309,20 @@ public class StockQuoteAnalyzerTests {
         Assert.assertEquals(analyzer.getPreviousOpen(), firstReturn.getOpen(), 0.01);
 	}
 
+	@Test(dataProvider = "normalOperationDataProvider")
+	public void testGetSymbolShouldReturnSymbol(StockQuote firstReturn, StockQuote secondReturn, int happyMusicCount, int sadMusicCount,
+												double percentChange) throws Exception {
+		//Assert
+		when(mockedStockQuoteGenerator.getCurrentQuote()).thenReturn(firstReturn);
+		analyzer = new StockQuoteAnalyzer("F", mockedStockQuoteGenerator, mockedStockTickerAudio);
+
+		//Act
+		String symbol = firstReturn.getSymbol();
+
+		//Assert
+		Assert.assertEquals("F", symbol);
+	}
+
 	
 
 	
