@@ -236,7 +236,7 @@ public class StockQuoteAnalyzer {
 			throw new InvalidAnalysisState("No quote has ever been retrieved.");
 		}
 		if (previousQuote == null) {
-			throw new InvalidAnalysisState("A second update has not yet occurred.");
+			return 0;
 		}
 
 		return currentQuote.getLastTrade() - previousQuote.getLastTrade();
